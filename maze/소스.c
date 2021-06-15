@@ -121,8 +121,7 @@ void dfs_maze(COORD grid, int n) {
 			continue;
 		if (visit[now.Y][now.X]) {
 			maze[grid.Y + y[r]][grid.X + x[r]] = 1;
-			//print(MAP, 0);
-			//Sleep(1);
+			print(MAP, 0);
 			continue;
 		}
 		dfs_maze(now, (r + 2) % 4);
