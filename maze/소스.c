@@ -29,6 +29,7 @@ COORD player = { 1,1 };
 COORD zero = { 0,0 };
 COORD mouse;
 COORD end;
+COORD pos = {30,5};
 int X[] = { 2,0,-2,0 };
 int x[] = { 1,0,-1,0 };
 int Y[] = { 0,2,0,-2 };
@@ -66,8 +67,9 @@ int main() {
 		make_maze();
 		print(MAP, 0);
 		play();
-		printf("%d", clock());
+		//printf("%d", clock());
 	}
+	SetConsoleTextAttribute(h_out, 7);
 }
 
 void make_maze() {
@@ -118,6 +120,8 @@ void dfs_maze(COORD grid, int n) {
 			continue;
 		if (visit[now.Y][now.X]) {
 			maze[grid.Y + y[r]][grid.X + x[r]] = 1;
+			//print(MAP, 0);
+			//Sleep(1);
 			continue;
 		}
 		dfs_maze(now, (r + 2) % 4);
@@ -292,7 +296,7 @@ void play() {
 				ch = _getch();
 				player.X *= 2;
 				SetConsoleCursorPosition(h_out, player);
-				printp(player.Y, player.X/2);
+				printp(player.Y, player.X / 2);
 				player.X /= 2;
 				switch (ch)
 				{
@@ -320,11 +324,12 @@ void play() {
 					break;
 				}
 				player.X *= 2;
+				SetConsoleCursorPosition(h_out, player);
 				printp(player.Y, player.X);
 				player.X /= 2;
 			}
-			if (ch == 'd')
-				print(MAP,0);
+			//if (ch == 'd')
+			//	print(MAP,0);
 		}
 	}
 }
