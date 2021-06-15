@@ -6,6 +6,10 @@
 #include<conio.h>
 #include<string.h>
 #define TITLE_SELECTIONS 3
+#define LEFT 75
+#define RIGHT 77
+#define UP 72
+#define DOWN 80
 
 typedef enum {
 	TITLE,
@@ -13,12 +17,15 @@ typedef enum {
 }sprint;
 
 //변수
+//방향
+int dir = 2;
 //맵
 int maze[10000][10000];
 int visit[10000][10000];
 //크기
 int maze_N, maze_M;
 //좌표
+COORD player = { 1,1 };
 COORD zero = { 0,0 };
 COORD mouse;
 COORD end;
@@ -28,7 +35,7 @@ int Y[] = { 0,2,0,-2 };
 int y[] = { 0,1,0,-1 };
 //타이틀 선택지
 char title[TITLE_SELECTIONS + 1][20] = { "미로만들기","첼린지모드","종료" };
-int select;
+int selected;
 //마우스 입력
 DWORD insize;
 //모드
@@ -43,18 +50,23 @@ void make_maze();
 void set_NM();
 void init();
 void CursorView();
+void play();
+void printp(int, int);
 int dfs(COORD, COORD);
 int select_title();
 
 int main() {
 	init();
-	select = select_title();
-	if (!select)
+	selected = select_title();
+	if (!selected)
 		return 0;
-	if (select == 1) {
+	if (selected == 1) {
+		system("cls");
 		set_NM();
 		make_maze();
 		print(MAP, 0);
+		play();
+		printf("%d", clock());
 	}
 }
 
@@ -181,17 +193,7 @@ void print(sprint select, int title_select) {
 		{
 			for (int j = 0; j < maze_M; j++)
 			{
-				if (maze[i][j] == 0)
-					SetConsoleTextAttribute(h_out, 7 | 7 << 4);
-				if (maze[i][j] == 1)
-					SetConsoleTextAttribute(h_out, 8 | 8 << 4);
-				if (maze[i][j] == 4)
-					SetConsoleTextAttribute(h_out, 10 | 10 << 4);
-				if (i == 1 && j == 1)
-					SetConsoleTextAttribute(h_out, 11 | 11 << 4);
-				if (i == maze_N - 2 && j == maze_M - 2)
-					SetConsoleTextAttribute(h_out, 12 | 12 << 4);
-				printf("■");
+				printp(i, j);
 			}
 			zero.Y++;
 			SetConsoleCursorPosition(h_out, zero);
@@ -207,7 +209,7 @@ void print(sprint select, int title_select) {
 void set_NM() {
 	maze_N = -1;
 	maze_M = -1;
-	while (maze_N < 0 || maze_M < 0 || maze_N % 2 == 0 || maze_M % 2 == 0 || maze_M>93) {
+	while (maze_N < 7 || maze_M < 7 || maze_N % 2 == 0 || maze_M % 2 == 0 || maze_M>93) {
 		SetConsoleCursorPosition(h_out, zero);
 		printf("미로를 만들 크기를 설정해 주세요.\n가로(93이하)(홀수) : ");
 		scanf("%d", &maze_M);
@@ -279,4 +281,76 @@ void CursorView()
 	cursorInfo.dwSize = 1; //커서 굵기 (1 ~ 100)
 	cursorInfo.bVisible = FALSE; //커서 Visible TRUE(보임) FALSE(숨김)
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+}
+
+void play() {
+	int ch;
+	while (player.Y != end.Y || player.X != end.X) {
+		if (_kbhit()) {
+			ch = _getch();
+			if (ch == 224) {
+				ch = _getch();
+				player.X *= 2;
+				SetConsoleCursorPosition(h_out, player);
+				printp(player.Y, player.X/2);
+				player.X /= 2;
+				switch (ch)
+				{
+				case LEFT:
+					if (maze[player.Y][player.X - 1] != 1)
+						player.X--;
+					dir = 0;
+					break;
+				case RIGHT:
+					if (maze[player.Y][player.X + 1] != 1)
+						player.X++;
+					dir = 1;
+					break;
+				case UP:
+					if (maze[player.Y - 1][player.X] != 1)
+						player.Y--;
+					dir = 2;
+					break;
+				case DOWN:
+					if (maze[player.Y + 1][player.X] != 1)
+						player.Y++;
+					dir = 3;
+					break;
+				default:
+					break;
+				}
+				player.X *= 2;
+				printp(player.Y, player.X);
+				player.X /= 2;
+			}
+			if (ch == 'd')
+				print(MAP,0);
+		}
+	}
+}
+
+void printp(int y, int x) {
+	if (maze[y][x] == 0)
+		SetConsoleTextAttribute(h_out, 7 | 7 << 4);
+	if (maze[y][x] == 1)
+		SetConsoleTextAttribute(h_out, 8 | 8 << 4);
+	if (maze[y][x] == 4)
+		SetConsoleTextAttribute(h_out, 10 | 10 << 4);
+	if (y == 1 && x == 1)
+		SetConsoleTextAttribute(h_out, 11 | 11 << 4);
+	if (y == maze_N - 2 && x == maze_M - 2)
+		SetConsoleTextAttribute(h_out, 12 | 12 << 4);
+	if (y == player.Y && x == player.X) {
+		SetConsoleTextAttribute(h_out, 9 | ((y == 1 && x == 1) ? 11 : ((y == maze_N - 2 && x == maze_M - 2) ? 12 : 7)) << 4);
+		if (dir == 0)
+			printf("◀");
+		if (dir == 1)
+			printf("▶");
+		if (dir == 2)
+			printf("▲");
+		if (dir == 3)
+			printf("▼");
+	}
+	else
+		printf("■");
 }
