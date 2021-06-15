@@ -29,7 +29,7 @@ COORD player = { 1,1 };
 COORD zero = { 0,0 };
 COORD mouse;
 COORD end;
-COORD pos = {30,5};
+COORD pos;
 int X[] = { 2,0,-2,0 };
 int x[] = { 1,0,-1,0 };
 int Y[] = { 0,2,0,-2 };
@@ -70,6 +70,7 @@ int main() {
 		//printf("%d", clock());
 	}
 	SetConsoleTextAttribute(h_out, 7);
+	SetConsoleCursorPosition(h_out, pos);
 }
 
 void make_maze() {
@@ -222,6 +223,7 @@ void set_NM() {
 	}
 	end.Y = maze_N - 2;
 	end.X = maze_M - 2;
+	pos.Y = maze_N + 2;
 }
 
 void init() {
