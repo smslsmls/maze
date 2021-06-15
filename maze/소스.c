@@ -20,6 +20,7 @@ int maze_N, maze_M;
 //좌표
 COORD zero = { 0,0 };
 COORD mouse;
+COORD end;
 int X[] = { 2,0,-2,0 };
 int x[] = { 1,0,-1,0 };
 int Y[] = { 0,2,0,-2 };
@@ -35,7 +36,7 @@ DWORD new_mode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_INSERT_MODE |
 HANDLE h_in, h_out;
 //함수 원형
 void dfs_maze(COORD, int);
-int dfs(COORD);
+int dfs(COORD, COORD);
 void print(sprint, int);
 void make_maze();
 void set_NM();
@@ -46,7 +47,8 @@ int main() {
 	COORD grid = { 1,1 };
 	init();
 	set_NM();
-	dfs_maze(grid, 4);
+	make_maze();
+	dfs(grid, end);
 	print(MAP, 2);
 }
 
@@ -177,12 +179,12 @@ void print(sprint select, int title_select) {
 					SetConsoleTextAttribute(h_out, 7 | 7 << 4);
 				if (maze[i][j] == 1)
 					SetConsoleTextAttribute(h_out, 8 | 8 << 4);
+				if (maze[i][j] == 4)
+					SetConsoleTextAttribute(h_out, 10 | 10 << 4);
 				if (i == 1 && j == 1)
 					SetConsoleTextAttribute(h_out, 11 | 11 << 4);
 				if (i == maze_N - 2 && j == maze_M - 2)
 					SetConsoleTextAttribute(h_out, 12 | 12 << 4);
-				if (maze[i][j] == 4)
-					SetConsoleTextAttribute(h_out, 10 | 10 << 4);
 				printf("■");
 			}
 			zero.Y++;
@@ -206,6 +208,8 @@ void set_NM() {
 		printf("세로(49이하 권장)(홀수) : ");
 		scanf("%d", &maze_N);
 	}
+	end.Y = maze_N - 2;
+	end.X = maze_M - 2;
 }
 
 void init() {
