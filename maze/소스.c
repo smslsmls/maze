@@ -229,7 +229,7 @@ int select_title() {
 			switch (in_buf[i].EventType)
 			{
 			case MOUSE_EVENT:
-				printf("mouse");
+				mouse = in_buf[i].Event.MouseEvent.dwMousePosition;
 			}
 		}
 	}
