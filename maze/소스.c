@@ -5,6 +5,7 @@
 #include<Windows.h>
 #include<conio.h>
 #include<string.h>
+#define TITLE_SELECTIONS 3
 
 typedef enum {
 	TITLE,
@@ -26,7 +27,8 @@ int x[] = { 1,0,-1,0 };
 int Y[] = { 0,2,0,-2 };
 int y[] = { 0,1,0,-1 };
 //타이틀 선택지
-char title[5][20] = { "미로만들기","첼린지모드","종료" };
+char title[TITLE_SELECTIONS + 1][20] = { "미로만들기","첼린지모드","종료" };
+int select;
 //마우스 입력
 DWORD insize;
 //모드
@@ -36,20 +38,24 @@ DWORD new_mode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_INSERT_MODE |
 HANDLE h_in, h_out;
 //함수 원형
 void dfs_maze(COORD, int);
-int dfs(COORD, COORD);
 void print(sprint, int);
 void make_maze();
 void set_NM();
 void init();
+void CursorView();
+int dfs(COORD, COORD);
 int select_title();
 
 int main() {
-	COORD grid = { 1,1 };
 	init();
-	set_NM();
-	make_maze();
-	dfs(grid, end);
-	print(MAP, 2);
+	select = select_title();
+	if (!select)
+		return 0;
+	if (select == 1) {
+		set_NM();
+		make_maze();
+		print(MAP, 0);
+	}
 }
 
 void make_maze() {
@@ -139,7 +145,7 @@ void print(sprint select, int title_select) {
 		}
 		zero.Y++;
 		SetConsoleCursorPosition(h_out, zero);
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < TITLE_SELECTIONS; i++)
 		{
 			len = strlen(title[i]);
 			printf("|");
@@ -216,11 +222,13 @@ void init() {
 	h_in = GetStdHandle(STD_INPUT_HANDLE);
 	h_out = GetStdHandle(STD_OUTPUT_HANDLE);
 	GetConsoleMode(h_in, &old_mode);
+	CursorView();
 }
 
 int select_title() {
 	INPUT_RECORD in_buf[100];
 	SetConsoleMode(h_in, new_mode);
+	print(TITLE, 0);
 	while (1)
 	{
 		ReadConsoleInput(h_in, in_buf, 100, &insize);
@@ -229,8 +237,46 @@ int select_title() {
 			switch (in_buf[i].EventType)
 			{
 			case MOUSE_EVENT:
-				mouse = in_buf[i].Event.MouseEvent.dwMousePosition;
+				switch (in_buf[i].Event.MouseEvent.dwEventFlags)
+				{
+				case 0:
+					if (in_buf[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+					{
+						if (mouse.X < 15 && mouse.X>0) {
+							if (mouse.Y == 1)
+								return 1;
+							else if (mouse.Y == 2)
+								return 2;
+							else if (mouse.Y == 3)
+								return 0;
+						}
+					}
+				case MOUSE_MOVED:
+					mouse = in_buf[i].Event.MouseEvent.dwMousePosition;
+					if (mouse.X < 15 && mouse.X>0) {
+						if (mouse.Y == 1)
+							print(TITLE, 1);
+						else if (mouse.Y == 2)
+							print(TITLE, 2);
+						else if (mouse.Y == 3)
+							print(TITLE, 3);
+						else
+							print(TITLE, 0);
+					}
+					else
+						print(TITLE, 0);
+				default:
+					break;
+				}
 			}
 		}
 	}
+}
+
+void CursorView()
+{
+	CONSOLE_CURSOR_INFO cursorInfo = { 0, };
+	cursorInfo.dwSize = 1; //커서 굵기 (1 ~ 100)
+	cursorInfo.bVisible = FALSE; //커서 Visible TRUE(보임) FALSE(숨김)
+	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
 }
