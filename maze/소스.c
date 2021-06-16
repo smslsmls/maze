@@ -257,6 +257,8 @@ void init() {
 	h_out = GetStdHandle(STD_OUTPUT_HANDLE);
 	GetConsoleMode(h_in, &old_mode);
 	CursorView();
+	system("mode con | title 미로찾기");
+	SetConsoleDisplayMode(h_out, CONSOLE_FULLSCREEN_MODE, 0);
 }
 
 int select_title() {
@@ -359,6 +361,8 @@ void play() {
 				SetConsoleCursorPosition(h_out, player);
 				player.X /= 2;
 				printp(player.Y, player.X, 1);
+				SetConsoleCursorPosition(h_out, pos);
+				SetConsoleTextAttribute(h_out, 7);
 			}
 			if (ch == 'd')
 				print(MAP, 0);
