@@ -370,20 +370,20 @@ void play() {
 	}
 }
 
-void printp(int y, int x, int n) {
+void printp(int i, int j, int n) {
 	int back = 0;
-	if (maze[y][x] == 0)
+	if (maze[i][j] == 0)
 		back = 7;
-	if (maze[y][x] == 1)
+	if (maze[i][j] == 1)
 		back = 8;
-	if (maze[y][x] == 4)
+	if (maze[i][j] == 4)
 		back = 10;
-	if (y == 1 && x == 1)
+	if (i == 1 && j == 1)
 		back = 11;
-	if (y == maze_N - 2 && x == maze_M - 2)
+	if (i == maze_N - 2 && j == maze_M - 2)
 		back = 12;
 	SetConsoleTextAttribute(h_out, back | back << 4);
-	if (y == player.Y && x == player.X && n == 1) {
+	if (i == player.Y && j == player.X && n == 1) {
 		SetConsoleTextAttribute(h_out, 9 | back << 4);
 		if (dir == 0)
 			printf("¢¸");
