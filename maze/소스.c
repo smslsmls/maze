@@ -57,6 +57,7 @@ void init();
 void CursorView();
 void play();
 void printp(int, int, int);
+void set_out();
 int dfs(COORD, COORD);
 int select_title();
 
@@ -66,14 +67,15 @@ int main() {
 	if (!selected)
 		return 0;
 	if (selected == 1) {
+		int map_print;
 		system("cls");
 		set_NM();
 		make_maze();
+		scanf("%d", &map_print);
 		print(MAP, 0);
 		cl = clock();
 		play();
-		SetConsoleCursorPosition(h_out, pos);
-		SetConsoleTextAttribute(h_out, 7);
+		set_out();
 		printf("%.3lf√ ", ((double)clock() - (double)cl) / 1000);
 		//printf("%d", clock());
 	}
@@ -87,8 +89,7 @@ int main() {
 			make_maze();
 			print(MAP, 0);
 			play();
-			SetConsoleCursorPosition(h_out, pos);
-			SetConsoleTextAttribute(h_out, 7);
+			set_out();
 		}
 		printf("%.3lf√ ", ((double)clock() - (double)cl) / 1000);
 	}
@@ -396,4 +397,10 @@ void printp(int i, int j, int n) {
 	}
 	else
 		printf("°·");
+}
+
+
+void set_out() {
+	SetConsoleCursorPosition(h_out, pos);
+	SetConsoleTextAttribute(h_out, 7);
 }
