@@ -62,7 +62,7 @@ void print(sprint, int);
 void make_maze();
 void set_NM();
 void init();
-void CursorView();
+void CursorView(int);
 void play(int);
 void printp(int, int, int);
 void set_out();
@@ -70,22 +70,24 @@ int dfs(COORD, COORD);
 selection select_title();
 int print2clip(char*);
 int strbig();
+void import_maze();
 
 int main() {
 	init();
 	selected = select_title();
 	if (selected==EXIT)
 		return 0;
+	system("cls");
 	if (selected == MAKE_MAZE) {
-		system("cls");
 		set_NM();
 		make_maze();
 		print(MAP, 1);
 		play(1);
-		set_out();
 	}
 	if (selected == IMPORT_MAZE) {
-
+		import_maze();
+		print(MAP, 0);
+		play(0);
 	}
 	if (selected == CHALLENGE_MODE) {
 		cl = clock();
@@ -97,11 +99,11 @@ int main() {
 			make_maze();
 			print(MAP, 0);
 			play(2);
-			set_out();
 		}
 		printf("%.3lf√ ", ((double)clock() - (double)cl) / 1000);
 	}
-
+	set_out();
+	return 0;
 }
 
 void make_maze() {
@@ -247,6 +249,7 @@ void print(sprint select, int n) {
 		break;
 	case NUMMAP:
 		fp = fopen("maze_map.txt", "w");
+		fprintf(fp, "%d %d\n", maze_N, maze_M);
 		SetConsoleTextAttribute(h_out, 7);
 		for (int i = 0; i < maze_N; i++)
 		{
@@ -259,6 +262,8 @@ void print(sprint select, int n) {
 			SetConsoleCursorPosition(h_out, zero);
 			fprintf(fp, "\n");
 		}
+		fclose(fp);
+		break;
 	default:
 		break;
 	}
@@ -312,7 +317,7 @@ selection select_title() {
 							if (mouse.Y == TITLE_SELECTIONS)
 								return EXIT;
 							if (mouse.Y < TITLE_SELECTIONS)
-								return mouse.Y;
+								return mouse.Y-1;
 						}
 					}
 				case MOUSE_MOVED:
@@ -464,4 +469,19 @@ int strbig() {
 			big = len;
 	}
 	return big;
+}
+
+void import_maze() {
+	FILE* fp;
+	fp = fopen("maze_map.txt", "r");
+	fscanf(fp, "%d %d", &maze_N, &maze_M);
+	for (int i = 0; i < maze_N; i++)
+	{
+		for (int j = 0; j < maze_M; j++)
+		{
+			fscanf(fp, "%d ", &maze[i][j]);
+		}
+	}
+	pos.Y = maze_M + 2;
+	fclose(fp);
 }
