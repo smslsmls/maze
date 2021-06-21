@@ -5,7 +5,7 @@
 #include<Windows.h>
 #include<conio.h>
 #include<string.h>
-#define TITLE_SELECTIONS 3
+#define TITLE_SELECTIONS 4
 #define LEFT 75
 #define RIGHT 77
 #define UP 72
@@ -13,8 +13,16 @@
 
 typedef enum {
 	TITLE,
-	MAP
+	MAP,
+	NUMMAP
 }sprint;
+
+typedef enum {
+	MAKE_MAZE,
+	IMPORT_MAZE,
+	CHALLENGE_MODE,
+	EXIT
+}selection;
 
 //변수
 //스테이지
@@ -23,8 +31,8 @@ int stage_M[] = { 9,15,33,43,55,71,93,93,93,93,93 };
 //방향
 int dir = 2;
 //맵
-int maze[10000][10000];
-int visit[10000][10000];
+int maze[10000][100];
+int visit[10000][100];
 //크기
 int maze_N, maze_M;
 //좌표
@@ -37,7 +45,7 @@ int x[] = { 1,0,-1,0 };
 int Y[] = { 0,2,0,-2 };
 int y[] = { 0,1,0,-1 };
 //타이틀 선택지
-char title[TITLE_SELECTIONS + 1][20] = { "미로만들기","첼린지모드","종료" };
+char title[TITLE_SELECTIONS + 1][100] = { "미로만들기","만들어진 미로 불러오기","챌린지모드","종료" };
 int selected;
 //시간
 clock_t cl;
@@ -55,28 +63,31 @@ void make_maze();
 void set_NM();
 void init();
 void CursorView();
-void play();
+void play(int);
 void printp(int, int, int);
 void set_out();
 int dfs(COORD, COORD);
-int select_title();
+selection select_title();
+int print2clip(char*);
+int strbig();
 
 int main() {
 	init();
 	selected = select_title();
-	if (!selected)
+	if (selected==EXIT)
 		return 0;
-	if (selected == 1) {
+	if (selected == MAKE_MAZE) {
 		system("cls");
 		set_NM();
 		make_maze();
-		print(MAP, 0);
-		cl = clock();
-		play();
+		print(MAP, 1);
+		play(1);
 		set_out();
-		printf("%.3lf초", ((double)clock() - (double)cl) / 1000);
 	}
-	if (selected == 2) {
+	if (selected == IMPORT_MAZE) {
+
+	}
+	if (selected == CHALLENGE_MODE) {
 		cl = clock();
 		for (int i = 0; i < 11; i++)
 		{
@@ -85,11 +96,12 @@ int main() {
 			maze_M = stage_M[i];
 			make_maze();
 			print(MAP, 0);
-			play();
+			play(2);
 			set_out();
 		}
 		printf("%.3lf초", ((double)clock() - (double)cl) / 1000);
 	}
+
 }
 
 void make_maze() {
@@ -172,15 +184,16 @@ int dfs(COORD grid, COORD end) {
 	return 0;
 }
 
-void print(sprint select, int title_select) {
+void print(sprint select, int n) {
 	int len;
-	int big = 10;
+	int big = strbig();
+	FILE* fp;
 	SetConsoleCursorPosition(h_out, zero);
 	switch (select)
 	{
 	case TITLE:
 		printf(" ");
-		for (int i = 0; i < 14; i++)
+		for (int i = 0; i < big+4; i++)
 		{
 			printf("-");
 		}
@@ -194,12 +207,12 @@ void print(sprint select, int title_select) {
 			{
 				printf(" ");
 			}
-			if (i + 1 == title_select)
+			if (i + 1 == n)
 				printf("->");
 			else
 				printf("  ");
 			printf("%s", title[i]);
-			if (i + 1 == title_select)
+			if (i + 1 == n)
 				printf("<-");
 			else
 				printf("  ");
@@ -212,7 +225,7 @@ void print(sprint select, int title_select) {
 			SetConsoleCursorPosition(h_out, zero);
 		}
 		printf(" ");
-		for (int i = 0; i < 14; i++)
+		for (int i = 0; i < big+4; i++)
 		{
 			printf("-");
 		}
@@ -227,12 +240,29 @@ void print(sprint select, int title_select) {
 			zero.Y++;
 			SetConsoleCursorPosition(h_out, zero);
 		}
+		if (n == 1) {
+			SetConsoleTextAttribute(h_out, 7);
+			printf("엔터키를 눌러 맵을 출력하세요");
+		}
 		break;
+	case NUMMAP:
+		fp = fopen("maze_map.txt", "w");
+		SetConsoleTextAttribute(h_out, 7);
+		for (int i = 0; i < maze_N; i++)
+		{
+			for (int j = 0; j < maze_M; j++)
+			{
+				printf("%d ", maze[i][j]);
+				fprintf(fp, "%d ", maze[i][j]);
+			}
+			zero.Y++;
+			SetConsoleCursorPosition(h_out, zero);
+			fprintf(fp, "\n");
+		}
 	default:
 		break;
 	}
 	zero.Y = 0;
-	SetConsoleTextAttribute(h_out, 7);
 }
 
 void set_NM() {
@@ -254,18 +284,19 @@ void init() {
 	h_in = GetStdHandle(STD_INPUT_HANDLE);
 	h_out = GetStdHandle(STD_OUTPUT_HANDLE);
 	GetConsoleMode(h_in, &old_mode);
-	CursorView();
+	CursorView(0);
 	system("mode con | title 미로찾기");
 	SetConsoleDisplayMode(h_out, CONSOLE_FULLSCREEN_MODE, 0);
 }
 
-int select_title() {
+selection select_title() {
+	int big = strbig();
 	INPUT_RECORD in_buf[100];
 	SetConsoleMode(h_in, new_mode);
 	print(TITLE, 0);
 	while (1)
 	{
-		CursorView();
+		CursorView(0);
 		ReadConsoleInput(h_in, in_buf, 100, &insize);
 		for (DWORD i = 0; i < insize; i++)
 		{
@@ -277,24 +308,18 @@ int select_title() {
 				case 0:
 					if (in_buf[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
 					{
-						if (mouse.X < 15 && mouse.X>0) {
-							if (mouse.Y == 1)
-								return 1;
-							else if (mouse.Y == 2)
-								return 2;
-							else if (mouse.Y == 3)
-								return 0;
+						if (mouse.X < big+6 && mouse.X>0) {
+							if (mouse.Y == TITLE_SELECTIONS)
+								return EXIT;
+							if (mouse.Y < TITLE_SELECTIONS)
+								return mouse.Y;
 						}
 					}
 				case MOUSE_MOVED:
 					mouse = in_buf[i].Event.MouseEvent.dwMousePosition;
-					if (mouse.X < 15 && mouse.X>0) {
-						if (mouse.Y == 1)
-							print(TITLE, 1);
-						else if (mouse.Y == 2)
-							print(TITLE, 2);
-						else if (mouse.Y == 3)
-							print(TITLE, 3);
+					if (mouse.X < big+6 && mouse.X>0) {
+						if (mouse.Y <= TITLE_SELECTIONS)
+							print(TITLE, mouse.Y);
 						else
 							print(TITLE, 0);
 					}
@@ -308,20 +333,20 @@ int select_title() {
 	}
 }
 
-void CursorView()
+void CursorView(int n)
 {
 	CONSOLE_CURSOR_INFO cursorInfo;
 	GetConsoleCursorInfo(h_out, &cursorInfo);
-	if (cursorInfo.bVisible) {
-		cursorInfo.bVisible = FALSE;
+	if (cursorInfo.bVisible != n) {
+		cursorInfo.bVisible = n;
 		SetConsoleCursorInfo(h_out, &cursorInfo);
 	}
 }
 
-void play() {
+void play(int n) {
 	int ch;
 	while (player.Y != maze_N - 2 || player.X != maze_M - 2) {
-		CursorView();
+		CursorView(0);
 		if (_kbhit()) {
 			ch = _getch();
 			if (ch == 224) {
@@ -364,6 +389,11 @@ void play() {
 			}
 			if (ch == 'd')
 				print(MAP, 0);
+			if (n == 1 && ch == 13) {
+				system("cls");
+				print(NUMMAP, 0);
+				break;
+			}
 		}
 	}
 }
@@ -399,4 +429,39 @@ void printp(int i, int j, int n) {
 void set_out() {
 	SetConsoleCursorPosition(h_out, pos);
 	SetConsoleTextAttribute(h_out, 7);
+}
+
+int print2clip(char* source)
+{
+	int ok = OpenClipboard(NULL);
+	if (!ok) return 0;
+
+
+
+	HGLOBAL clipbuffer;
+	char* buffer;
+
+	EmptyClipboard();
+	clipbuffer = GlobalAlloc(GPTR, strlen(source) + 1);
+	buffer = (char*)GlobalLock(clipbuffer);
+	strcpy(buffer, source);
+	GlobalUnlock(clipbuffer);
+	SetClipboardData(CF_TEXT, clipbuffer);
+	CloseClipboard();
+
+
+
+	return 1;
+}
+
+int strbig() {
+	int big = strlen(title[0]);
+	int len;
+	for (int i = 1; i < TITLE_SELECTIONS; i++)
+	{
+		len = strlen(title[i]);
+		if (len > big)
+			big = len;
+	}
+	return big;
 }
